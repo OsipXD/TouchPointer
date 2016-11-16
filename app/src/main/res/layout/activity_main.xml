@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        tools:context="ru.endlesscode.touchpointer.MainActivity">
+
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/start_stop_service"
+            android:id="@+id/service_btn"
+            android:onClick="onClickService"
+            android:layout_centerVertical="true" android:layout_centerHorizontal="true"/>
+    <SeekBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/mouseSpeedBar"
+            android:max="90"
+            android:indeterminate="false"
+            android:layout_above="@+id/service_btn" android:layout_alignLeft="@+id/service_btn"
+            android:progress="0"
+            android:layout_toLeftOf="@+id/mouseSpeedVal"/>
+    <TextView
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="x10.0"
+            android:id="@+id/mouseSpeedVal"
+            android:layout_above="@+id/service_btn" android:layout_alignRight="@+id/service_btn"
+            android:layout_below="@+id/mouseSpeedCaption" android:gravity="center_vertical"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/pointer_speed"
+            android:id="@+id/mouseSpeedCaption" android:layout_above="@+id/mouseSpeedBar"
+            android:layout_alignLeft="@+id/mouseSpeedBar"/>
+</RelativeLayout>

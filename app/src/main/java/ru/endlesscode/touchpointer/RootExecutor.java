@@ -9,21 +9,18 @@ import java.io.InputStream;
  * It is part of the TouchPointer.
  * All rights reserved 2014 - 2016 © «EndlessCode Group»
  */
-class RootExecutor {
+public class RootExecutor {
     private static Process suProcess;
 
-    static boolean requestRoot() {
-        try {
-            suProcess = Runtime.getRuntime().exec("su");
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+    public static void exec(String command) {
+        while (suProcess == null) {
+            try {
+                suProcess = Runtime.getRuntime().exec("su");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
-        return true;
-    }
-
-    static void exec(String command) {
         DataOutputStream dos = new DataOutputStream(suProcess.getOutputStream());
         InputStream is = suProcess.getInputStream();
         try {
@@ -33,7 +30,7 @@ class RootExecutor {
             dos.flush();
             is.read();
         } catch (IOException e) {
-            e.printStackTrace();
+            suProcess = null;
         }
     }
 }

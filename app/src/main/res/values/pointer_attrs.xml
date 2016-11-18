@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="Pointer">
+        <attr name="pointerSize" format="dimension" />
+        <attr name="borderSize" format="dimension" />
+        <attr name="pointerColor" format="color" />
+    </declare-styleable>
+</resources>

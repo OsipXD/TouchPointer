@@ -1,14 +1,17 @@
 package ru.endlesscode.touchpointer;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
     private static boolean serviceEnabled = false;
+
     private Intent service;
     private TextView mouseSpeedVal;
 
@@ -17,6 +20,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        init();
+    }
+
+    private void init() {
+        Utils.init((WindowManager) getSystemService(Context.WINDOW_SERVICE));
         service = new Intent(this, MousePointerService.class);
 
         mouseSpeedVal = (TextView) findViewById(R.id.mouseSpeedVal);
@@ -27,21 +35,16 @@ public class MainActivity extends AppCompatActivity {
                 System.out.println("onProgressChanged");
                 Config.setSpeedMultiplier(1 + progress / 10f);
                 mouseSpeedVal.setText("x" + Config.getSpeedMultiplier());
-                mouseSpeedVal.invalidate();
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                System.out.println("onStartTrackingTouch");
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                System.out.println("onStopTrackingTouch");
             }
         });
-
-        RootExecutor.requestRoot();
     }
 
     public void onClickService(View v) {

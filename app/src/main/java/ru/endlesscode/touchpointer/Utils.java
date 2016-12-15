@@ -2,7 +2,10 @@ package ru.endlesscode.touchpointer;
 
 import android.graphics.Color;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.WindowManager;
+
+import java.lang.reflect.Field;
 
 /**
  * Created by OsipXD on 17.11.2016
@@ -22,7 +25,26 @@ public class Utils {
         return darkness >= 0.5;
     }
 
-    static DisplayMetrics getDisplayMetrics() {
-        return displayMetrics;
+    public static void disableAnimation(WindowManager.LayoutParams params) {
+        String className = "android.view.WindowManager$LayoutParams";
+        try {
+            Class layoutParamsClass = Class.forName(className);
+
+            Field privateFlags = layoutParamsClass.getField("privateFlags");
+            Field noAnim = layoutParamsClass.getField("PRIVATE_FLAG_NO_MOVE_ANIMATION");
+
+            int privateFlagsValue = privateFlags.getInt(params);
+            int noAnimFlag = noAnim.getInt(params);
+            privateFlagsValue |= noAnimFlag;
+
+            privateFlags.setInt(params, privateFlagsValue);
+
+            // Dynamically do stuff with this class
+            // List constructors, fields, methods, etc.
+
+        } catch (Exception e) {
+            Log.d("TapTap", e.toString(), e);
+            // Unknown exception
+        }
     }
 }

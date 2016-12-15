@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import ru.endlesscode.touchpointer.injector.ShellInterface;
 
 public class MainActivity extends AppCompatActivity {
     private static boolean serviceEnabled = false;
@@ -20,7 +21,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ShellInterface.isSuAvailable();
         init();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     private void init() {

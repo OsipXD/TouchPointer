@@ -1,25 +1,27 @@
 package ru.endlesscode.touchpointer.gesture;
 
-import android.os.AsyncTask;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.widget.RelativeLayout;
 import ru.endlesscode.touchpointer.Config;
-import ru.endlesscode.touchpointer.RootExecutor;
 import ru.endlesscode.touchpointer.views.Pointer;
-import ru.endlesscode.touchpointer.views.TouchPointerLayout;
+import ru.endlesscode.touchpointer.views.TouchArea;
 
 public class PointerGestureListener extends GestureDetector.SimpleOnGestureListener {
     private final Pointer pointer;
-    private TouchPointerLayout layout;
+    private final TouchArea area;
+    private final GestureInjector gestureInjector;
 
-    private Clicker clicker;
+    private MotionEvent doubleTapStartEvent;
+    private Gesture savedGesture;
+
     private int x, y, oldX, oldY;
 
-    public PointerGestureListener(TouchPointerLayout layout) {
-        this.layout = layout;
-        this.pointer = layout.getPointer();
+    public PointerGestureListener(TouchArea area, Pointer pointer) {
+        this.area = area;
+        this.pointer = pointer;
+        this.gestureInjector = new GestureInjector(area);
 
         x = pointer.getPointerX();
         y = pointer.getPointerY();
@@ -27,7 +29,6 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
 
     @Override
     public boolean onDown(MotionEvent e) {
-        Log.d("Down", "I'm here");
         oldX = x;
         oldY = y;
 
@@ -46,8 +47,18 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
     }
 
     @Override
-    public boolean onDoubleTapEvent(MotionEvent e) {
+    public boolean onDoubleTapEvent(final MotionEvent e) {
         Log.d("Double Tap Event", "I'm here");
+        switch (e.getAction()) {
+            case MotionEvent.ACTION_UP:
+                savedGesture.add(x, y, e.getEventTime() - doubleTapStartEvent.getEventTime());
+                gestureInjector.sendGesture(savedGesture);
+                break;
+            case MotionEvent.ACTION_MOVE:
+                onDoubleTapDrag(e);
+                break;
+        }
+
         return true;
     }
 
@@ -60,40 +71,37 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
         Log.d("Scroll", "I'm here");
-        int x = (int) (oldX + (e2.getRawX() - e1.getRawX()) * Config.getSpeedMultiplier());
-        int y = (int) (oldY + (e2.getRawY() - e1.getRawY()) * Config.getSpeedMultiplier());
+        onMove(e1, e2);
 
-        RelativeLayout parent = (RelativeLayout) pointer.getParent();
+        return true;
+    }
+
+    private void onMove(MotionEvent from, MotionEvent to) {
+        int x = (int) (oldX + (to.getRawX() - from.getRawX()) * Config.getSpeedMultiplier());
+        int y = (int) (oldY + (to.getRawY() - from.getRawY()) * Config.getSpeedMultiplier());
+
+        DisplayMetrics metrics = pointer.getMetrics();
         if (x < 0) {
             x = 0;
-        } else if (x > parent.getWidth()) {
-            x = parent.getWidth();
+        } else if (x > metrics.widthPixels) {
+            x = metrics.widthPixels;
         }
 
         if (y < 0) {
             y = 0;
-        } else if (y > parent.getHeight()) {
-            y = parent.getHeight();
+        } else if (y > metrics.heightPixels) {
+            y = metrics.heightPixels;
         }
 
         this.x = x;
         this.y = y;
 
         pointer.setPointerPosition(x, y);
-        layout.update(x, y);
-
-        return true;
     }
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
-        Log.d("Single Tap Confirmed", "I'm here");
-        if (clicker == null || clicker.getStatus() != AsyncTask.Status.RUNNING) {
-            clicker = new Clicker(x, y);
-            clicker.execute();
-
-            return true;
-        }
+        gestureInjector.sendClick(x, y);
 
         return false;
     }
@@ -111,27 +119,17 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
 
     @Override
     public boolean onDoubleTap(MotionEvent e) {
-        float x = e.getX();
-        float y = e.getY();
+        area.onDoubleTapped();
+        doubleTapStartEvent = e;
+        savedGesture = new Gesture(x, y);
 
-        Log.d("Double Tap", "Tapped at: (" + x + "," + y + ")");
+        Log.d("Double Tap", "Tapped at: (" + e.getRawX() + "," + e.getRawY() + ")");
 
         return true;
     }
 
-    private class Clicker extends AsyncTask<Void, Void, Void> {
-        private final int x;
-        private final int y;
-
-        Clicker(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            RootExecutor.exec("input tap " + x + " " + y);
-            return null;
-        }
+    public void onDoubleTapDrag(final MotionEvent e) {
+        onMove(doubleTapStartEvent, e);
+        savedGesture.add(x, y, e.getEventTime() - doubleTapStartEvent.getEventTime());
     }
 }

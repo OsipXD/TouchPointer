@@ -10,6 +10,10 @@ android {
         versionCode 1
         versionName "1.0"
     }
+    sourceSets.main {
+        jniLibs.srcDir 'src/main/libs'
+        jni.srcDirs = [] //disable automatic ndk-build call
+    }
     buildTypes {
         release {
             minifyEnabled false
@@ -24,4 +28,38 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.4.0'
+    compile 'org.jetbrains:annotations-java5:15.0'
+}
+
+task('compileNative') {
+    def $ndkBuildScript = System.properties['os.name'].toLowerCase().contains('windows') ? 'ndk-build.cmd' : 'ndk-build'
+    def $ndkProjectRootFolder = 'src/main'
+    def $ndkDirPropertyName = 'ndk.dir'
+
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+    def $ndkDir = properties.getProperty($ndkDirPropertyName)
+
+    if( $ndkDir == null)
+        throw new RuntimeException("Property 'ndk.dir' not found. Please specify it. \n" +
+                " It must be something like this in your local.properties file \n" +
+                " ndk.dir=path/to/your/ndk")
+
+    exec {
+        executable = $ndkDir + '\\' + $ndkBuildScript
+        args = ["NDK_PROJECT_PATH=" + $ndkProjectRootFolder]
+    }
+}
+
+task nativeLibsToJar(type: Zip, description: 'create a jar archive of the native libs', dependsOn: 'compileNative') {
+    destinationDir file("$buildDir/native-libs")
+    baseName 'native-libs'
+    extension 'jar'
+    from fileTree(dir: 'jniLibs', include: '**/*.so')
+    into 'lib/'
+}
+
+tasks.withType(JavaCompile) {
+    compileTask -> compileTask.dependsOn(nativeLibsToJar)
 }

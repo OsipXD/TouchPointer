@@ -1,78 +1,82 @@
 package ru.endlesscode.touchpointer.views;
 
-import android.content.Context;
-import android.view.GestureDetector;
-import android.view.LayoutInflater;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
+import android.graphics.PixelFormat;
+import android.util.DisplayMetrics;
+import android.view.Gravity;
+import android.view.WindowManager;
 import ru.endlesscode.touchpointer.MousePointerService;
-import ru.endlesscode.touchpointer.R;
-import ru.endlesscode.touchpointer.gesture.PointerGestureListener;
+import ru.endlesscode.touchpointer.Utils;
 
 /**
  * Created by OsipXD on 18.11.2016
  * It is part of the TouchPointer.
  * All rights reserved 2014 - 2016 © «EndlessCode Group»
  */
-public class TouchPointerLayout extends FrameLayout {
-    private static final int TOP_RIGHT  = 0;
-    private static final int TOP_LEFT   = 1;
-    private static final int BOT_LEFT   = 2;
-    private static final int BOT_RIGHT  = 3;
+public class TouchPointerLayout {
+    private final MousePointerService context;
+    private final WindowManager wm;
 
     private Pointer pointer;
-    private TouchArea[] touchAreas = new TouchArea[4];
-    private GestureDetector gestureDetector;
+    private TouchArea touchArea;
 
-    public TouchPointerLayout(MousePointerService context) {
-        super(context);
-
-        initComponent();
+    public TouchPointerLayout(MousePointerService context, WindowManager wm) {
+        this.context = context;
+        this.wm = wm;
     }
 
-    @Override
     public void setEnabled(boolean enabled) {
-        super.setEnabled(enabled);
-
-        this.setClickable(enabled);
-        this.setVisibility(enabled ? VISIBLE : INVISIBLE);
+        touchArea.setEnabled(enabled);
+        pointer.setEnabled(enabled);
     }
 
-    private void initComponent() {
-        LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        inflater.inflate(R.layout.pointer_area_layout, this);
-        pointer = (Pointer) findViewById(R.id.pointer);
-        touchAreas[TOP_RIGHT] = (TouchArea) findViewById(R.id.touchArea1);
-        touchAreas[TOP_RIGHT].setBackgroundColor(0x44ff0000);
-        touchAreas[TOP_LEFT] = (TouchArea) findViewById(R.id.touchArea2);
-        touchAreas[TOP_LEFT].setBackgroundColor(0x4400ff00);
-        touchAreas[BOT_LEFT] = (TouchArea) findViewById(R.id.touchArea3);
-        touchAreas[BOT_LEFT].setBackgroundColor(0x440000ff);
-        touchAreas[BOT_RIGHT] = (TouchArea) findViewById(R.id.touchArea4);
-        touchAreas[BOT_RIGHT].setBackgroundColor(0x44000000);
+    public void initComponents() {
+        pointer = new Pointer(this.context, null, wm);
 
-        this.gestureDetector = new GestureDetector(this.getContext(), new PointerGestureListener(this));
-        for (TouchArea area : touchAreas) {
-            area.init(gestureDetector);
-        }
-    }
+        int untouchableFlags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR
+                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
 
-    public void update(int x, int y) {
-        int halfPointer = pointer.getWidth() / 2;
+        int touchableFlags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR
+                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
 
-        ViewGroup.LayoutParams params = touchAreas[TOP_RIGHT].getLayoutParams();
-        params.width =  this.getWidth() - (x + halfPointer);
-        params.height = y + halfPointer;
+        // Add pointer
+        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.TYPE_SYSTEM_ERROR, untouchableFlags, PixelFormat.TRANSLUCENT);
+        layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
+        wm.addView(pointer, layoutParams);
 
-        params = touchAreas[BOT_LEFT].getLayoutParams();
-        params.width = x - halfPointer;
-        params.height =  this.getHeight() - (y - halfPointer);
+        // Add touchable area
+        layoutParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.TYPE_SYSTEM_ERROR, touchableFlags, PixelFormat.TRANSLUCENT);
+        Utils.disableAnimation(layoutParams);
+        touchArea = new TouchArea(this.context, this.wm, this.pointer);
+        touchArea.setBackgroundColor(0x44ff0000);
+        wm.addView(touchArea, layoutParams);
 
-        touchAreas[TOP_RIGHT].requestLayout();
-        pointer.requestLayout();
+        DisplayMetrics metrics = this.getMetrics();
+        int x = metrics.widthPixels / 2;
+        int y = metrics.heightPixels / 2;
+
+        this.pointer.setPointerPosition(x, y);
     }
 
     public Pointer getPointer() {
         return pointer;
+    }
+
+    private DisplayMetrics getMetrics() {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        wm.getDefaultDisplay().getMetrics(displayMetrics);
+
+        return displayMetrics;
+    }
+
+    public void removeComponents() {
+        wm.removeView(touchArea);
+        wm.removeView(pointer);
     }
 }

@@ -16,7 +16,9 @@ public class TouchArea extends View {
     private final PointerGestureListener gestureListener;
     private final GestureDetector gestureDetector;
     private final WindowManager wm;
+
     private boolean doubleTapped = false;
+    private boolean longPress = false;
     private boolean touchable = true;
 
     TouchArea(Context context, WindowManager wm, Pointer pointer) {
@@ -45,8 +47,18 @@ public class TouchArea extends View {
             return true;
         }
 
-        if(event.getAction() == MotionEvent.ACTION_MOVE && doubleTapped) {
-            gestureListener.onDoubleTapDrag(event);
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_MOVE:
+                if (doubleTapped) {
+                    gestureListener.onDoubleTapDrag(event);
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                if (longPress) {
+                    this.longPress = false;
+                    gestureListener.onLongPressUp(event);
+                }
+                break;
         }
 
         return false;
@@ -68,7 +80,11 @@ public class TouchArea extends View {
         wm.updateViewLayout(this, params);
     }
 
-    public void onDoubleTapped() {
-        doubleTapped = true;
+    public void onLongPress() {
+        longPress = true;
+    }
+
+    public void setDoubleTapped(boolean doubleTapped) {
+        this.doubleTapped = doubleTapped;
     }
 }

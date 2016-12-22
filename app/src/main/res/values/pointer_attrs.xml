@@ -4,5 +4,6 @@
         <attr name="pointerSize" format="dimension" />
         <attr name="borderSize" format="dimension" />
         <attr name="pointerColor" format="color" />
+        <attr name="borderColor" format="color" />
     </declare-styleable>
 </resources>

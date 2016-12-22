@@ -3,6 +3,7 @@ package ru.endlesscode.touchpointer.injector;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.MotionEvent;
+import ru.endlesscode.touchpointer.gesture.GesturePoint;
 
 /**
  * Created by OsipXD on 14.12.2016
@@ -10,7 +11,8 @@ import android.view.MotionEvent;
  * All rights reserved 2014 - 2016 © «EndlessCode Group»
  */
 public class EventInjector {
-    private final static String LT = "Events";
+    private final static String LT  = "Events";
+    private final static int ID     = 42;
 
     static {
         System.loadLibrary("EventInjector");
@@ -74,7 +76,16 @@ public class EventInjector {
         }
     }
 
-    public static void sendTouch(long eventTime, int action, int x, int y) {
+    public static void startMonitoring() {
+        monitorOn = true;
+        deviceMonitor.start();
+    }
+
+    public static void stopMonitoring() {
+        monitorOn = false;
+    }
+
+    public static void sendMotion(GesturePoint gesturePoint, long eventTime, int action) {
         try {
             while (true) {
                 if (SystemClock.uptimeMillis() >= eventTime) {
@@ -84,23 +95,14 @@ public class EventInjector {
 
             switch (action) {
                 case MotionEvent.ACTION_DOWN:
-                    touchDevice.sendTouchDown(42, x, y);
+                    touchDevice.sendTouchDown(EventInjector.ID, gesturePoint.getX(), gesturePoint.getY());
                     break;
                 case MotionEvent.ACTION_UP:
-                    touchDevice.sendTouchUp(x, y);
+                    touchDevice.sendTouchUp(gesturePoint.getX(), gesturePoint.getY());
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    touchDevice.sendTouchMove(x, y);
+                    touchDevice.sendTouchMove(gesturePoint.getX(), gesturePoint.getY());
             }
         } catch (Exception ignored) {}
-    }
-
-    public static void startMonitoring() {
-        monitorOn = true;
-        deviceMonitor.start();
-    }
-
-    public static void stopMonitoring() {
-        monitorOn = false;
     }
 }

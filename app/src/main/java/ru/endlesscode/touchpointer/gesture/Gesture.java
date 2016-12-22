@@ -9,30 +9,24 @@ import java.util.List;
  * All rights reserved 2014 - 2016 © «EndlessCode Group»
  */
 public class Gesture {
-    private final GesturePoint start;
     private final List<GesturePoint> way;
-    private GesturePoint end;
+    private final long startTime;
 
-    public Gesture(int x, int y) {
-        this.start = this.end = new GesturePoint(x, y, 0);
+    Gesture(long startTime, int x, int y, int rotation) {
+        this.startTime = startTime;
         way = new ArrayList<>();
+        way.add(new GesturePoint(x, y, rotation));
     }
 
-    public void add(int x, int y, long timeOffset) {
-        GesturePoint point = new GesturePoint(x, y, timeOffset);
-        way.add(end);
-        end = point;
+    void add(long time, int x, int y, int rotation) {
+        way.add(new GesturePoint(x, y, rotation, time - this.startTime));
     }
 
-    public GesturePoint getStart() {
-        return start;
-    }
-
-    public List<GesturePoint> getWay() {
+    List<GesturePoint> getWay() {
         return way;
     }
 
-    public GesturePoint getEnd() {
-        return end;
+    int getWaySize() {
+        return way.size();
     }
 }

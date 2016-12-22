@@ -30,7 +30,7 @@
             android:layout_width="40dp"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="x10.0"
+            android:text="x1.0"
             android:id="@+id/mouseSpeedVal"
             android:layout_above="@+id/service_btn" android:layout_alignRight="@+id/service_btn"
             android:layout_below="@+id/mouseSpeedCaption" android:gravity="center_vertical"/>
@@ -41,4 +41,12 @@
             android:text="@string/pointer_speed"
             android:id="@+id/mouseSpeedCaption" android:layout_above="@+id/mouseSpeedBar"
             android:layout_alignLeft="@+id/mouseSpeedBar"/>
+    <ToggleButton
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_below="@+id/service_btn"
+            android:layout_marginTop="39dp" android:id="@+id/toggleButton"
+            android:background="@drawable/circle_toggle"
+            android:textOff="" android:textOn=""
+            android:checked="false" android:layout_centerHorizontal="true"/>
 </RelativeLayout>

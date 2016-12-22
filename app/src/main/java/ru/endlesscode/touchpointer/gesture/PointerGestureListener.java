@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import ru.endlesscode.touchpointer.Config;
+import ru.endlesscode.touchpointer.util.WindowManagerUtil;
 import ru.endlesscode.touchpointer.views.Pointer;
 import ru.endlesscode.touchpointer.views.TouchArea;
 
@@ -13,10 +14,10 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
     private final TouchArea area;
     private final GestureInjector gestureInjector;
 
-    private MotionEvent doubleTapStartEvent;
     private Gesture savedGesture;
 
     private int x, y, oldX, oldY;
+    private MotionEvent dragStartEvent;
 
     public PointerGestureListener(TouchArea area, Pointer pointer) {
         this.area = area;
@@ -37,6 +38,7 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
 
     @Override
     public void onLongPress(MotionEvent e) {
+        this.area.onLongPress();
         Log.d("Long Press", "I'm here");
     }
 
@@ -48,11 +50,18 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
 
     @Override
     public boolean onDoubleTapEvent(final MotionEvent e) {
-        Log.d("Double Tap Event", "I'm here");
+        Log.d("Double Tap Event", e.getRawX() + ", " + e.getRawY());
         switch (e.getAction()) {
             case MotionEvent.ACTION_UP:
-                savedGesture.add(x, y, e.getEventTime() - doubleTapStartEvent.getEventTime());
-                gestureInjector.sendGesture(savedGesture);
+                area.setDoubleTapped(false);
+                savedGesture.add(e.getEventTime(), x, y, WindowManagerUtil.getDisplayRotation());
+
+                if (savedGesture.getWaySize() == 3) {
+                    gestureInjector.doubleTap(new GesturePoint(x, y, WindowManagerUtil.getDisplayRotation()));
+                } else {
+                    gestureInjector.gesture(savedGesture);
+                }
+
                 break;
             case MotionEvent.ACTION_MOVE:
                 onDoubleTapDrag(e);
@@ -80,7 +89,7 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
         int x = (int) (oldX + (to.getRawX() - from.getRawX()) * Config.getSpeedMultiplier());
         int y = (int) (oldY + (to.getRawY() - from.getRawY()) * Config.getSpeedMultiplier());
 
-        DisplayMetrics metrics = pointer.getMetrics();
+        DisplayMetrics metrics = WindowManagerUtil.getMetrics();
         if (x < 0) {
             x = 0;
         } else if (x > metrics.widthPixels) {
@@ -101,7 +110,7 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
-        gestureInjector.sendClick(x, y);
+        gestureInjector.tap(new GesturePoint(x, y, WindowManagerUtil.getDisplayRotation()));
 
         return false;
     }
@@ -119,9 +128,9 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
 
     @Override
     public boolean onDoubleTap(MotionEvent e) {
-        area.onDoubleTapped();
-        doubleTapStartEvent = e;
-        savedGesture = new Gesture(x, y);
+        area.setDoubleTapped(true);
+        dragStartEvent = e;
+        savedGesture = new Gesture(e.getEventTime(), x, y, WindowManagerUtil.getDisplayRotation());
 
         Log.d("Double Tap", "Tapped at: (" + e.getRawX() + "," + e.getRawY() + ")");
 
@@ -129,7 +138,11 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
     }
 
     public void onDoubleTapDrag(final MotionEvent e) {
-        onMove(doubleTapStartEvent, e);
-        savedGesture.add(x, y, e.getEventTime() - doubleTapStartEvent.getEventTime());
+        onMove(dragStartEvent, e);
+        savedGesture.add(e.getEventTime(), x, y, WindowManagerUtil.getDisplayRotation());
+    }
+
+    public void onLongPressUp(MotionEvent e) {
+        gestureInjector.longTap(new GesturePoint(x, y, WindowManagerUtil.getDisplayRotation()));
     }
 }

@@ -10,9 +10,9 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import ru.endlesscode.touchpointer.R;
-import ru.endlesscode.touchpointer.Utils;
+import ru.endlesscode.touchpointer.util.ColorUtil;
+import ru.endlesscode.touchpointer.util.WindowManagerUtil;
 
 /**
  * Created by OsipXD on 17.11.2016
@@ -20,19 +20,17 @@ import ru.endlesscode.touchpointer.Utils;
  * All rights reserved 2014 - 2016 © «EndlessCode Group»
  */
 public class Pointer extends View {
+    private final Paint cursor = new Paint();
+    private final Paint cursorBorder = new Paint();
+    private final Paint border = new Paint();
+
     private int size;
     private int borderSize;
-
-    private final Paint cursor = new Paint();
-    private final Paint border = new Paint();
     private int pointerX;
     private int pointerY;
-    private WindowManager wm;
 
-    Pointer(Context context, @Nullable AttributeSet attrs, WindowManager wm) {
+    Pointer(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-
-        this.wm = wm;
 
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
@@ -41,15 +39,19 @@ public class Pointer extends View {
         );
 
         int color = a.getColor(R.styleable.Pointer_pointerColor, Color.DKGRAY);
+        int borderColor = a.getColor(R.styleable.Pointer_borderColor, 0x77ff0000);
         int size = a.getDimensionPixelSize(R.styleable.Pointer_pointerSize, 30);
         int borderSize = a.getDimensionPixelSize(R.styleable.Pointer_borderSize, 3);
-
 
         this.setColor(color);
         this.setSize(size, borderSize);
 
         this.cursor.setStrokeCap(Paint.Cap.ROUND);
-        this.border.setStrokeCap(Paint.Cap.ROUND);
+        this.cursorBorder.setStrokeCap(Paint.Cap.ROUND);
+
+        this.border.setColor(borderColor);
+        this.border.setStrokeWidth(borderSize * 2);
+        this.border.setStyle(Paint.Style.STROKE);
     }
 
     @Override
@@ -60,8 +62,10 @@ public class Pointer extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        canvas.drawPoint(pointerX, pointerY, border);
+        DisplayMetrics metrics = WindowManagerUtil.getMetrics();
+        canvas.drawPoint(pointerX, pointerY, cursorBorder);
         canvas.drawPoint(pointerX, pointerY, cursor);
+        canvas.drawRect(0, 0, metrics.widthPixels, metrics.heightPixels, border);
 
         Log.d("TapTap", "Position: (" + pointerX + ", " + pointerY + ")");
     }
@@ -78,10 +82,6 @@ public class Pointer extends View {
         this.pointerX = pointerX;
         this.pointerY = pointerY;
 
-//        WindowManager.LayoutParams params = (WindowManager.LayoutParams) this.getLayoutParams();
-//        params.x = x;
-//        params.y = y;
-//        wm.updateViewLayout(this, params);
         invalidate();
     }
 
@@ -95,7 +95,7 @@ public class Pointer extends View {
 
     private void setColor(int color) {
         this.cursor.setColor(color);
-        this.border.setColor(Utils.isColorDark(color) ? Color.LTGRAY : Color.DKGRAY);
+        this.cursorBorder.setColor(ColorUtil.isColorDark(color) ? Color.LTGRAY : Color.DKGRAY);
 
         invalidate();
     }
@@ -105,15 +105,8 @@ public class Pointer extends View {
         this.borderSize = borderSize;
 
         this.cursor.setStrokeWidth(this.size);
-        this.border.setStrokeWidth(this.size + this.borderSize);
+        this.cursorBorder.setStrokeWidth(this.size + this.borderSize);
 
         requestLayout();
-    }
-
-    public DisplayMetrics getMetrics() {
-        DisplayMetrics metrics = new DisplayMetrics();
-        wm.getDefaultDisplay().getMetrics(metrics);
-
-        return metrics;
     }
 }

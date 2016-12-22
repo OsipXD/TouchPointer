@@ -10,13 +10,18 @@ import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.ToggleButton;
 import ru.endlesscode.touchpointer.injector.EventInjector;
+import ru.endlesscode.touchpointer.util.WindowManagerUtil;
 import ru.endlesscode.touchpointer.views.TouchPointerLayout;
 
 public class MousePointerService extends Service {
-    private WindowManager wm;
+    private static boolean enabled = false;
 
     private TouchPointerLayout touchPointerLayout;
     private ToggleButton overlayButton;
+
+    public static boolean isEnabled() {
+        return enabled;
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -27,9 +32,11 @@ public class MousePointerService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        WindowManagerUtil.init(windowManager);
+        enabled = true;
 
-        touchPointerLayout = new TouchPointerLayout(this, wm);
+        touchPointerLayout = new TouchPointerLayout(this, windowManager);
         touchPointerLayout.initComponents();
         touchPointerLayout.setEnabled(false);
 
@@ -48,7 +55,7 @@ public class MousePointerService extends Service {
                         | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
         buttonParams.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
-        wm.addView(overlayButton, buttonParams);
+        windowManager.addView(overlayButton, buttonParams);
 
         EventInjector.init();
     }
@@ -57,8 +64,9 @@ public class MousePointerService extends Service {
     public void onDestroy() {
         super.onDestroy();
 
+        WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         if (overlayButton != null) {
-            wm.removeView(overlayButton);
+            windowManager.removeView(overlayButton);
             overlayButton = null;
         }
 
@@ -68,5 +76,6 @@ public class MousePointerService extends Service {
         }
 
         EventInjector.release();
+        enabled = false;
     }
 }

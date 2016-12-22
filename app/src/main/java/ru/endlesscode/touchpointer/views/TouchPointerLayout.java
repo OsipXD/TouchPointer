@@ -5,7 +5,7 @@ import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.WindowManager;
 import ru.endlesscode.touchpointer.MousePointerService;
-import ru.endlesscode.touchpointer.Utils;
+import ru.endlesscode.touchpointer.util.WindowManagerUtil;
 
 /**
  * Created by OsipXD on 18.11.2016
@@ -30,7 +30,7 @@ public class TouchPointerLayout {
     }
 
     public void initComponents() {
-        pointer = new Pointer(this.context, null, wm);
+        pointer = new Pointer(this.context, null);
 
         int untouchableFlags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
@@ -52,7 +52,7 @@ public class TouchPointerLayout {
         // Add touchable area
         layoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.TYPE_SYSTEM_ERROR, touchableFlags, PixelFormat.TRANSLUCENT);
-        Utils.disableAnimation(layoutParams);
+        WindowManagerUtil.disableAnimation(layoutParams);
         touchArea = new TouchArea(this.context, this.wm, this.pointer);
         touchArea.setBackgroundColor(0x44ff0000);
         wm.addView(touchArea, layoutParams);

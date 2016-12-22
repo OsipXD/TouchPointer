@@ -1,6 +1,5 @@
-package ru.endlesscode.touchpointer;
+package ru.endlesscode.touchpointer.util;
 
-import android.graphics.Color;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.WindowManager;
@@ -8,21 +7,15 @@ import android.view.WindowManager;
 import java.lang.reflect.Field;
 
 /**
- * Created by OsipXD on 17.11.2016
+ * Created by OsipXD on 22.12.2016
  * It is part of the TouchPointer.
  * All rights reserved 2014 - 2016 © «EndlessCode Group»
  */
-public class Utils {
-    private static final DisplayMetrics displayMetrics = new DisplayMetrics();
+public class WindowManagerUtil {
+    private static WindowManager wm;
 
-    static void init(WindowManager wm) {
-        wm.getDefaultDisplay().getMetrics(displayMetrics);
-    }
-
-    public static boolean isColorDark(int color){
-        double darkness = 1 - (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)) / 255;
-
-        return darkness >= 0.5;
+    public static void init(WindowManager wm) {
+        WindowManagerUtil.wm = wm;
     }
 
     public static void disableAnimation(WindowManager.LayoutParams params) {
@@ -38,13 +31,20 @@ public class Utils {
             privateFlagsValue |= noAnimFlag;
 
             privateFlags.setInt(params, privateFlagsValue);
-
-            // Dynamically do stuff with this class
-            // List constructors, fields, methods, etc.
-
         } catch (Exception e) {
             Log.d("TapTap", e.toString(), e);
-            // Unknown exception
         }
     }
+
+    public static DisplayMetrics getMetrics() {
+        DisplayMetrics metrics = new DisplayMetrics();
+        wm.getDefaultDisplay().getMetrics(metrics);
+
+        return metrics;
+    }
+
+    public static int getDisplayRotation() {
+        return wm.getDefaultDisplay().getRotation();
+    }
 }
+

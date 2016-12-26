@@ -4,4 +4,7 @@
     <color name="colorPrimaryDark">#388e3c</color>
     <color name="colorAccent">#fb8c00</color>
     <color name="colorBorder">#eeeeee</color>
+
+    <color name="black_overlay">#66000000</color>
+    <color name="colorLight">#ffffff</color>
 </resources>

@@ -12,6 +12,7 @@ import android.view.Gravity;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
 import ru.endlesscode.touchpointer.injector.EventInjector;
+import ru.endlesscode.touchpointer.util.Config;
 import ru.endlesscode.touchpointer.util.DisplayUtil;
 import ru.endlesscode.touchpointer.views.CircleToggleButton;
 import ru.endlesscode.touchpointer.views.Pointer;
@@ -116,10 +117,11 @@ public class TouchPointerService extends Service {
 
         layoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
+                Config.getButtonPosX(), Config.getButtonPosY(),
                 WindowManager.LayoutParams.TYPE_SYSTEM_ERROR,
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
-        layoutParams.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
+        layoutParams.gravity = Gravity.LEFT | Gravity.TOP;
         wm.addView(overlayButton, layoutParams);
 
         // Add pointer

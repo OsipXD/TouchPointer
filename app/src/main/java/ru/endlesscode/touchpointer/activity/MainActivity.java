@@ -33,6 +33,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+        if (Config.getButtonPosX() == -1 || Config.getButtonPosY() == -1) {
+            Intent aboutScreen = new Intent(getBaseContext(), CalibrateActivity.class);
+            this.startActivity(aboutScreen);
+            return;
+        }
+
         service = new Intent(this, TouchPointerService.class);
         if (!TouchPointerService.isEnabled()) {
             startTPService();
@@ -106,5 +112,12 @@ public class MainActivity extends AppCompatActivity {
         } else if (TouchPointerService.isEnabled()) {
             stopService(service);
         }
+    }
+
+    public void onCalibrateBtnClicked(View view) {
+        stopService(service);
+
+        Intent calibrationActivity = new Intent(this, CalibrateActivity.class);
+        startActivity(calibrationActivity);
     }
 }

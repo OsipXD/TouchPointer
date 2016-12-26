@@ -1,5 +1,7 @@
 package ru.endlesscode.touchpointer.gesture;
 
+import ru.endlesscode.touchpointer.util.Config;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,18 +10,21 @@ import java.util.List;
  * It is part of the TouchPointer.
  * All rights reserved 2014 - 2016 © «EndlessCode Group»
  */
-public class Gesture {
+class Gesture {
     private final List<GesturePoint> way;
     private final long startTime;
+    private final float gestureSpeed;
 
     Gesture(long startTime, int x, int y, int rotation) {
         this.startTime = startTime;
         way = new ArrayList<>();
         way.add(new GesturePoint(x, y, rotation));
+
+        this.gestureSpeed = Config.getGestureMultiplier();
     }
 
     void add(long time, int x, int y, int rotation) {
-        way.add(new GesturePoint(x, y, rotation, time - this.startTime));
+        way.add(new GesturePoint(x, y, rotation, (long) ((time - this.startTime) / this.gestureSpeed)));
     }
 
     List<GesturePoint> getWay() {

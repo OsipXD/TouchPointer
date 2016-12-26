@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_checked="true"
-          android:drawable="@drawable/circle_toggle_on"
-          android:layout_height="40dp" android:layout_width="40dp" />
-    <item android:state_checked="false"
-          android:drawable="@drawable/circle_toggle_off"
-          android:layout_height="20dp" android:layout_width="20dp"/>
-</selector>
+
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item android:state_checked="true">
+        <shape android:shape="oval">
+            <solid android:color="@color/colorAccent"/>
+            <corners android:radius="30dp"/>
+        </shape>
+    </item>
+    <item android:id="@+id/mouseImage">
+        <bitmap android:src="@drawable/ic_mouse_white_24dp"
+            android:gravity="center" />
+    </item>
+</layer-list>

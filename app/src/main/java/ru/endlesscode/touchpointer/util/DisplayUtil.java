@@ -1,5 +1,6 @@
 package ru.endlesscode.touchpointer.util;
 
+import android.content.res.Resources;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.WindowManager;
@@ -11,11 +12,11 @@ import java.lang.reflect.Field;
  * It is part of the TouchPointer.
  * All rights reserved 2014 - 2016 © «EndlessCode Group»
  */
-public class WindowManagerUtil {
+public class DisplayUtil {
     private static WindowManager wm;
 
     public static void init(WindowManager wm) {
-        WindowManagerUtil.wm = wm;
+        DisplayUtil.wm = wm;
     }
 
     public static void disableAnimation(WindowManager.LayoutParams params) {
@@ -37,14 +38,19 @@ public class WindowManagerUtil {
     }
 
     public static DisplayMetrics getMetrics() {
-        DisplayMetrics metrics = new DisplayMetrics();
-        wm.getDefaultDisplay().getMetrics(metrics);
-
-        return metrics;
+        return Resources.getSystem().getDisplayMetrics();
     }
 
     public static int getDisplayRotation() {
         return wm.getDefaultDisplay().getRotation();
+    }
+
+    public static int pxToDp(int px) {
+        return (int) (px / Resources.getSystem().getDisplayMetrics().density);
+    }
+
+    public static int dpToPx(int dp) {
+        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
     }
 }
 

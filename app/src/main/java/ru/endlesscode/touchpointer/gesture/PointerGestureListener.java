@@ -1,11 +1,11 @@
 package ru.endlesscode.touchpointer.gesture;
 
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.GestureDetector;
+import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
-import ru.endlesscode.touchpointer.Config;
-import ru.endlesscode.touchpointer.util.WindowManagerUtil;
+import ru.endlesscode.touchpointer.util.Config;
+import ru.endlesscode.touchpointer.util.DisplayUtil;
 import ru.endlesscode.touchpointer.views.Pointer;
 import ru.endlesscode.touchpointer.views.TouchArea;
 
@@ -37,27 +37,14 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
     }
 
     @Override
-    public void onLongPress(MotionEvent e) {
-        this.area.onLongPress();
-        Log.d("Long Press", "I'm here");
-    }
-
-    @Override
-    public boolean onContextClick(MotionEvent e) {
-        Log.d("Context Click", "I'm here");
-        return true;
-    }
-
-    @Override
     public boolean onDoubleTapEvent(final MotionEvent e) {
-        Log.d("Double Tap Event", e.getRawX() + ", " + e.getRawY());
         switch (e.getAction()) {
             case MotionEvent.ACTION_UP:
                 area.setDoubleTapped(false);
-                savedGesture.add(e.getEventTime(), x, y, WindowManagerUtil.getDisplayRotation());
+                savedGesture.add(e.getEventTime(), x, y, DisplayUtil.getDisplayRotation());
 
                 if (savedGesture.getWaySize() == 3) {
-                    gestureInjector.doubleTap(new GesturePoint(x, y, WindowManagerUtil.getDisplayRotation()));
+                    gestureInjector.doubleTap(new GesturePoint(x, y, DisplayUtil.getDisplayRotation()));
                 } else {
                     gestureInjector.gesture(savedGesture);
                 }
@@ -72,33 +59,30 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
     }
 
     @Override
-    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        Log.d("Fling", "I'm here");
-        return true;
-    }
-
-    @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-        Log.d("Scroll", "I'm here");
         onMove(e1, e2);
 
         return true;
     }
 
     private void onMove(MotionEvent from, MotionEvent to) {
-        int x = (int) (oldX + (to.getRawX() - from.getRawX()) * Config.getSpeedMultiplier());
-        int y = (int) (oldY + (to.getRawY() - from.getRawY()) * Config.getSpeedMultiplier());
+        int x = (int) (this.oldX + (to.getRawX() - from.getRawX()) * Config.getSpeedMultiplier());
+        int y = (int) (this.oldY + (to.getRawY() - from.getRawY()) * Config.getSpeedMultiplier());
 
-        DisplayMetrics metrics = WindowManagerUtil.getMetrics();
+        DisplayMetrics metrics = DisplayUtil.getMetrics();
         if (x < 0) {
+            this.oldX += -x;
             x = 0;
         } else if (x > metrics.widthPixels) {
+            this.oldX -= (x - metrics.widthPixels);
             x = metrics.widthPixels;
         }
 
         if (y < 0) {
+            this.oldY += -y;
             y = 0;
         } else if (y > metrics.heightPixels) {
+            this.oldY -= (y - metrics.heightPixels);
             y = metrics.heightPixels;
         }
 
@@ -110,39 +94,35 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
-        gestureInjector.tap(new GesturePoint(x, y, WindowManagerUtil.getDisplayRotation()));
+        gestureInjector.tap(new GesturePoint(x, y, DisplayUtil.getDisplayRotation()));
 
         return false;
     }
 
     @Override
-    public boolean onSingleTapUp(MotionEvent e) {
-        Log.d("Single Tap Up", "I'm here");
-        return true;
-    }
-
-    @Override
-    public void onShowPress(MotionEvent e) {
-        Log.d("Show Pres", "I'm here");
+    public void onLongPress(MotionEvent e) {
+        if (!area.isDoubleTapped()) {
+            area.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+            area.onLongPress();
+        }
     }
 
     @Override
     public boolean onDoubleTap(MotionEvent e) {
         area.setDoubleTapped(true);
+        area.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
         dragStartEvent = e;
-        savedGesture = new Gesture(e.getEventTime(), x, y, WindowManagerUtil.getDisplayRotation());
-
-        Log.d("Double Tap", "Tapped at: (" + e.getRawX() + "," + e.getRawY() + ")");
+        savedGesture = new Gesture(e.getEventTime(), x, y, DisplayUtil.getDisplayRotation());
 
         return true;
     }
 
     public void onDoubleTapDrag(final MotionEvent e) {
         onMove(dragStartEvent, e);
-        savedGesture.add(e.getEventTime(), x, y, WindowManagerUtil.getDisplayRotation());
+        savedGesture.add(e.getEventTime(), x, y, DisplayUtil.getDisplayRotation());
     }
 
     public void onLongPressUp(MotionEvent e) {
-        gestureInjector.longTap(new GesturePoint(x, y, WindowManagerUtil.getDisplayRotation()));
+        gestureInjector.longTap(new GesturePoint(x, y, DisplayUtil.getDisplayRotation()));
     }
 }

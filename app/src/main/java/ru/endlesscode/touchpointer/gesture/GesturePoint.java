@@ -2,7 +2,7 @@ package ru.endlesscode.touchpointer.gesture;
 
 import android.util.DisplayMetrics;
 import android.view.Surface;
-import ru.endlesscode.touchpointer.util.WindowManagerUtil;
+import ru.endlesscode.touchpointer.util.DisplayUtil;
 
 /**
  * Created by OsipXD on 14.12.2016
@@ -19,10 +19,11 @@ public class GesturePoint {
     }
 
     GesturePoint(int x, int y, int rotation, long timeOffset) {
-        DisplayMetrics metrics = WindowManagerUtil.getMetrics();
+        DisplayMetrics metrics = DisplayUtil.getMetrics();
         switch (rotation) {
             case Surface.ROTATION_90:
                 this.x = metrics.heightPixels - y;
+                //noinspection SuspiciousNameCombination
                 this.y = x;
                 break;
             case Surface.ROTATION_180:
@@ -30,6 +31,7 @@ public class GesturePoint {
                 this.y = metrics.heightPixels - y;
                 break;
             case Surface.ROTATION_270:
+                //noinspection SuspiciousNameCombination
                 this.x = y;
                 this.y = metrics.widthPixels - x;
                 break;
@@ -42,7 +44,7 @@ public class GesturePoint {
         this.timeOffset = timeOffset;
     }
 
-    public long getTimeOffset() {
+    long getTimeOffset() {
         return timeOffset;
     }
 

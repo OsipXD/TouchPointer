@@ -21,7 +21,7 @@ public class TouchArea extends View {
     private boolean longPress = false;
     private boolean touchable = true;
 
-    TouchArea(Context context, WindowManager wm, Pointer pointer) {
+    public TouchArea(Context context, WindowManager wm, Pointer pointer) {
         super(context, null);
 
         this.wm = wm;
@@ -86,5 +86,9 @@ public class TouchArea extends View {
 
     public void setDoubleTapped(boolean doubleTapped) {
         this.doubleTapped = doubleTapped;
+    }
+
+    public boolean isDoubleTapped() {
+        return doubleTapped;
     }
 }

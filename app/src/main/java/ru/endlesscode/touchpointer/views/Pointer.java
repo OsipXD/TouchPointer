@@ -8,11 +8,10 @@ import android.graphics.Paint;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 import ru.endlesscode.touchpointer.R;
 import ru.endlesscode.touchpointer.util.ColorUtil;
-import ru.endlesscode.touchpointer.util.WindowManagerUtil;
+import ru.endlesscode.touchpointer.util.DisplayUtil;
 
 /**
  * Created by OsipXD on 17.11.2016
@@ -29,7 +28,7 @@ public class Pointer extends View {
     private int pointerX;
     private int pointerY;
 
-    Pointer(Context context, @Nullable AttributeSet attrs) {
+    public Pointer(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
 
         TypedArray a = context.getTheme().obtainStyledAttributes(
@@ -38,10 +37,18 @@ public class Pointer extends View {
                 0, 0
         );
 
-        int color = a.getColor(R.styleable.Pointer_pointerColor, Color.DKGRAY);
-        int borderColor = a.getColor(R.styleable.Pointer_borderColor, 0x77ff0000);
-        int size = a.getDimensionPixelSize(R.styleable.Pointer_pointerSize, 30);
-        int borderSize = a.getDimensionPixelSize(R.styleable.Pointer_borderSize, 3);
+        int color;
+        int borderColor;
+        int size;
+        int borderSize;
+        try {
+            color = a.getColor(R.styleable.Pointer_pointerColor, Color.DKGRAY);
+            borderColor = a.getColor(R.styleable.Pointer_borderColor, 0xFF388E3C);
+            size = a.getDimensionPixelSize(R.styleable.Pointer_pointerSize, DisplayUtil.dpToPx(10));
+            borderSize = a.getDimensionPixelSize(R.styleable.Pointer_borderSize, DisplayUtil.dpToPx(1));
+        } finally {
+            a.recycle();
+        }
 
         this.setColor(color);
         this.setSize(size, borderSize);
@@ -52,6 +59,10 @@ public class Pointer extends View {
         this.border.setColor(borderColor);
         this.border.setStrokeWidth(borderSize * 2);
         this.border.setStyle(Paint.Style.STROKE);
+
+        DisplayMetrics metrics = DisplayUtil.getMetrics();
+        this.pointerX = metrics.widthPixels / 2;
+        this.pointerY = metrics.heightPixels / 2;
     }
 
     @Override
@@ -62,20 +73,14 @@ public class Pointer extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        DisplayMetrics metrics = WindowManagerUtil.getMetrics();
+        DisplayMetrics metrics = DisplayUtil.getMetrics();
         canvas.drawPoint(pointerX, pointerY, cursorBorder);
         canvas.drawPoint(pointerX, pointerY, cursor);
         canvas.drawRect(0, 0, metrics.widthPixels, metrics.heightPixels, border);
-
-        Log.d("TapTap", "Position: (" + pointerX + ", " + pointerY + ")");
     }
 
-    @Override
-    public void setEnabled(boolean enabled) {
-        super.setEnabled(enabled);
-
-        this.setClickable(enabled);
-        this.setVisibility(enabled ? VISIBLE : INVISIBLE);
+    public void setVisible(boolean visible) {
+        this.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
     }
 
     public void setPointerPosition(int pointerX, int pointerY) {

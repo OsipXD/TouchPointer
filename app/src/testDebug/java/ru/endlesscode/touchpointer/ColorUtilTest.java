@@ -1,14 +1,15 @@
 package ru.endlesscode.touchpointer;
 
 import android.graphics.Color;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.legacy.PowerMockRunner;
 import ru.endlesscode.touchpointer.util.ColorUtil;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
@@ -20,36 +21,42 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @PrepareForTest(Color.class)
 public class ColorUtilTest {
     public ColorUtilTest() {
-        PowerMockito.mockStatic(Color.class);
+        mockStatic(Color.class);
     }
 
     @Test
-    public void testLightColor() throws Exception {
+    public void isColorDark_LightColor_ReturnFalse() throws Exception {
         int color = Color.WHITE;
         when(Color.red(color)).thenReturn(0xFF);
         when(Color.green(color)).thenReturn(0xFF);
         when(Color.blue(color)).thenReturn(0xFF);
 
-        Assert.assertFalse(ColorUtil.isColorDark(color));
+        boolean result = ColorUtil.isColorDark(color);
+
+        assertFalse(result);
     }
 
     @Test
-    public void testDarkColor() throws Exception {
+    public void isColorDark_DarkColor_ReturnTrue() throws Exception {
         int color = Color.BLACK;
         when(Color.red(color)).thenReturn(0x00);
         when(Color.green(color)).thenReturn(0x00);
         when(Color.blue(color)).thenReturn(0x00);
 
-        Assert.assertTrue(ColorUtil.isColorDark(color));
+        boolean result = ColorUtil.isColorDark(color);
+
+        assertTrue(result);
     }
 
     @Test
-    public void testOwnColor() throws Exception {
+    public void isColorDark_BorderColor_ReturnTrue() throws Exception {
         int color = 0xFF00D900;
         when(Color.red(color)).thenReturn(0x00);
         when(Color.green(color)).thenReturn(0xD9);
         when(Color.blue(color)).thenReturn(0x00);
 
-        Assert.assertTrue(ColorUtil.isColorDark(color));
+        boolean result = ColorUtil.isColorDark(color);
+
+        assertTrue(result);
     }
 }

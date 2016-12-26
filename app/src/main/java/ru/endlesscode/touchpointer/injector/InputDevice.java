@@ -8,17 +8,12 @@ import android.util.Log;
  * All rights reserved 2014 - 2016 © «EndlessCode Group»
  */
 public class InputDevice {
-    private final static String LT = "Events";
+    private static final String LT = "Events";
 
     private static final int EV_SYN = 0x00;
-    private static final int EV_KEY = 0x01;
     private static final int EV_ABS = 0x03;
 
-    private static final int REL_X = 0x00;
-    private static final int REL_Y = 0x01;
-
     private static final int SYN_REPORT = 0x00;
-    private static final int SYN_MT_REPORT = 0x02;
 
     // Reports the cross-sectional area of the touch contact, or the length of the longer dimension of the touch contact.
     private static final int ABS_MT_TOUCH_MAJOR     = 48;
@@ -30,9 +25,6 @@ public class InputDevice {
     private static final int ABS_MT_TRACKING_ID     = 57;
     // Reports the physical pressure applied to the tip of the tool or the signal strength of the touch contact.
     private static final int ABS_MT_PRESSURE        = 58;
-
-    // Indicates whether the tool is touching the device.
-    private static final int BTN_TOUCH = 0x14a;
 
     private int id;
     private String path;
@@ -48,19 +40,19 @@ public class InputDevice {
         return Native.sendEvent(this.id, type, code, value);
     }
 
-    public int getPollingEvent() {
+    int getPollingEvent() {
         return Native.pollDevice(id);
     }
 
-    public int getPollingType() {
+    int getPollingType() {
         return Native.getType();
     }
 
-    public int getPollingCode() {
+    int getPollingCode() {
         return Native.getCode();
     }
 
-    public int getPollingValue() {
+    int getPollingValue() {
         return Native.getValue();
     }
 
@@ -72,7 +64,7 @@ public class InputDevice {
         return id;
     }
 
-    public String getPath() {
+    String getPath() {
         return path;
     }
 
@@ -85,7 +77,7 @@ public class InputDevice {
         Native.removeDevice(id);
     }
 
-    public void sendTouchDown(int id, int x, int y) {
+    void sendTouchDown(int id, int x, int y) {
         sendEvent(EV_ABS, ABS_MT_TRACKING_ID, id);
         sendEvent(EV_ABS, ABS_MT_POSITION_X, x);
         sendEvent(EV_ABS, ABS_MT_POSITION_Y, y);
@@ -94,12 +86,12 @@ public class InputDevice {
         sendSynReport();
     }
 
-    public void sendTouchUp(int x, int y) {
+    void sendTouchUp() {
         sendEvent(EV_ABS, ABS_MT_TRACKING_ID, -1);
         sendSynReport();
     }
 
-    public void sendTouchMove(int x, int y) {
+    void sendTouchMove(int x, int y) {
         sendEvent(EV_ABS, ABS_MT_POSITION_X, x);
         sendEvent(EV_ABS, ABS_MT_POSITION_Y, y);
         sendSynReport();

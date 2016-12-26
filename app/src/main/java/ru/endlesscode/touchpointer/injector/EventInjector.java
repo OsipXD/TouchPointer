@@ -3,6 +3,7 @@ package ru.endlesscode.touchpointer.injector;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.MotionEvent;
+import ru.endlesscode.touchpointer.activity.MainActivity;
 import ru.endlesscode.touchpointer.gesture.GesturePoint;
 
 /**
@@ -11,12 +12,17 @@ import ru.endlesscode.touchpointer.gesture.GesturePoint;
  * All rights reserved 2014 - 2016 © «EndlessCode Group»
  */
 public class EventInjector {
-    private final static String LT  = "Events";
-    private final static int ID     = 42;
+    private final static int ID = 42;
+
+    private static final boolean debug;
 
     static {
         System.loadLibrary("EventInjector");
-        Native.enableDebug(1);
+
+        // For debug
+        debug = false;
+        //noinspection ConstantConditions
+        Native.enableDebug(debug ? 1 : 0);
     }
 
     private static InputDevice touchDevice;
@@ -39,7 +45,7 @@ public class EventInjector {
                         this.lastType = type;
                         this.lastCode = code;
                         this.lastValue = value;
-                        Log.d(LT, String.format("Event: %d %d %d", type, code, value));
+                        Log.d(MainActivity.TAG, String.format("Event: %d %d %d", type, code, value));
                     }
                 }
             }
@@ -56,9 +62,10 @@ public class EventInjector {
             device.open(true);
 
             if (device.getName().contains("touch")) {
-                Log.d(LT, "Touch device:" + device.getPath() + " Name:" + device.getName() + " opened");
                 touchDevice = device;
-                startMonitoring();
+                if (debug) {
+                    startMonitoring();
+                }
 
                 return true;
             }
@@ -72,21 +79,24 @@ public class EventInjector {
     public static void release() {
         if (touchDevice != null) {
             touchDevice.close();
-            stopMonitoring();
+            if (debug) {
+                stopMonitoring();
+            }
         }
     }
 
-    public static void startMonitoring() {
+    private static void startMonitoring() {
         monitorOn = true;
         deviceMonitor.start();
     }
 
-    public static void stopMonitoring() {
+    private static void stopMonitoring() {
         monitorOn = false;
     }
 
     public static void sendMotion(GesturePoint gesturePoint, long eventTime, int action) {
         try {
+            // Waiting for event time
             while (true) {
                 if (SystemClock.uptimeMillis() >= eventTime) {
                     break;
@@ -98,7 +108,7 @@ public class EventInjector {
                     touchDevice.sendTouchDown(EventInjector.ID, gesturePoint.getX(), gesturePoint.getY());
                     break;
                 case MotionEvent.ACTION_UP:
-                    touchDevice.sendTouchUp(gesturePoint.getX(), gesturePoint.getY());
+                    touchDevice.sendTouchUp();
                     break;
                 case MotionEvent.ACTION_MOVE:
                     touchDevice.sendTouchMove(gesturePoint.getX(), gesturePoint.getY());

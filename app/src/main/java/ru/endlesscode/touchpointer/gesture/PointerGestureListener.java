@@ -1,25 +1,28 @@
 package ru.endlesscode.touchpointer.gesture;
 
-import android.os.AsyncTask;
-import android.util.Log;
+import android.util.DisplayMetrics;
 import android.view.GestureDetector;
+import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
-import android.widget.RelativeLayout;
-import ru.endlesscode.touchpointer.Config;
-import ru.endlesscode.touchpointer.RootExecutor;
+import ru.endlesscode.touchpointer.util.Config;
+import ru.endlesscode.touchpointer.util.DisplayUtil;
 import ru.endlesscode.touchpointer.views.Pointer;
-import ru.endlesscode.touchpointer.views.TouchPointerLayout;
+import ru.endlesscode.touchpointer.views.TouchArea;
 
 public class PointerGestureListener extends GestureDetector.SimpleOnGestureListener {
     private final Pointer pointer;
-    private TouchPointerLayout layout;
+    private final TouchArea area;
+    private final GestureInjector gestureInjector;
 
-    private Clicker clicker;
+    private Gesture savedGesture;
+
     private int x, y, oldX, oldY;
+    private MotionEvent dragStartEvent;
 
-    public PointerGestureListener(TouchPointerLayout layout) {
-        this.layout = layout;
-        this.pointer = layout.getPointer();
+    public PointerGestureListener(TouchArea area, Pointer pointer) {
+        this.area = area;
+        this.pointer = pointer;
+        this.gestureInjector = new GestureInjector(area);
 
         x = pointer.getPointerX();
         y = pointer.getPointerY();
@@ -27,7 +30,6 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
 
     @Override
     public boolean onDown(MotionEvent e) {
-        Log.d("Down", "I'm here");
         oldX = x;
         oldY = y;
 
@@ -35,103 +37,92 @@ public class PointerGestureListener extends GestureDetector.SimpleOnGestureListe
     }
 
     @Override
-    public void onLongPress(MotionEvent e) {
-        Log.d("Long Press", "I'm here");
-    }
+    public boolean onDoubleTapEvent(final MotionEvent e) {
+        switch (e.getAction()) {
+            case MotionEvent.ACTION_UP:
+                area.setDoubleTapped(false);
+                savedGesture.add(e.getEventTime(), x, y, DisplayUtil.getDisplayRotation());
 
-    @Override
-    public boolean onContextClick(MotionEvent e) {
-        Log.d("Context Click", "I'm here");
-        return true;
-    }
+                if (savedGesture.getWaySize() == 3) {
+                    gestureInjector.doubleTap(new GesturePoint(x, y, DisplayUtil.getDisplayRotation()));
+                } else {
+                    gestureInjector.gesture(savedGesture);
+                }
 
-    @Override
-    public boolean onDoubleTapEvent(MotionEvent e) {
-        Log.d("Double Tap Event", "I'm here");
-        return true;
-    }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                onDoubleTapDrag(e);
+                break;
+        }
 
-    @Override
-    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        Log.d("Fling", "I'm here");
         return true;
     }
 
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-        Log.d("Scroll", "I'm here");
-        int x = (int) (oldX + (e2.getRawX() - e1.getRawX()) * Config.getSpeedMultiplier());
-        int y = (int) (oldY + (e2.getRawY() - e1.getRawY()) * Config.getSpeedMultiplier());
+        onMove(e1, e2);
 
-        RelativeLayout parent = (RelativeLayout) pointer.getParent();
+        return true;
+    }
+
+    private void onMove(MotionEvent from, MotionEvent to) {
+        int x = (int) (this.oldX + (to.getRawX() - from.getRawX()) * Config.getSpeedMultiplier());
+        int y = (int) (this.oldY + (to.getRawY() - from.getRawY()) * Config.getSpeedMultiplier());
+
+        DisplayMetrics metrics = DisplayUtil.getMetrics();
         if (x < 0) {
+            this.oldX += -x;
             x = 0;
-        } else if (x > parent.getWidth()) {
-            x = parent.getWidth();
+        } else if (x > metrics.widthPixels) {
+            this.oldX -= (x - metrics.widthPixels);
+            x = metrics.widthPixels;
         }
 
         if (y < 0) {
+            this.oldY += -y;
             y = 0;
-        } else if (y > parent.getHeight()) {
-            y = parent.getHeight();
+        } else if (y > metrics.heightPixels) {
+            this.oldY -= (y - metrics.heightPixels);
+            y = metrics.heightPixels;
         }
 
         this.x = x;
         this.y = y;
 
         pointer.setPointerPosition(x, y);
-        layout.update(x, y);
-
-        return true;
     }
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
-        Log.d("Single Tap Confirmed", "I'm here");
-        if (clicker == null || clicker.getStatus() != AsyncTask.Status.RUNNING) {
-            clicker = new Clicker(x, y);
-            clicker.execute();
-
-            return true;
-        }
+        gestureInjector.tap(new GesturePoint(x, y, DisplayUtil.getDisplayRotation()));
 
         return false;
     }
 
     @Override
-    public boolean onSingleTapUp(MotionEvent e) {
-        Log.d("Single Tap Up", "I'm here");
-        return true;
-    }
-
-    @Override
-    public void onShowPress(MotionEvent e) {
-        Log.d("Show Pres", "I'm here");
+    public void onLongPress(MotionEvent e) {
+        if (!area.isDoubleTapped()) {
+            area.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+            area.onLongPress();
+        }
     }
 
     @Override
     public boolean onDoubleTap(MotionEvent e) {
-        float x = e.getX();
-        float y = e.getY();
-
-        Log.d("Double Tap", "Tapped at: (" + x + "," + y + ")");
+        area.setDoubleTapped(true);
+        area.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+        dragStartEvent = e;
+        savedGesture = new Gesture(e.getEventTime(), x, y, DisplayUtil.getDisplayRotation());
 
         return true;
     }
 
-    private class Clicker extends AsyncTask<Void, Void, Void> {
-        private final int x;
-        private final int y;
+    public void onDoubleTapDrag(final MotionEvent e) {
+        onMove(dragStartEvent, e);
+        savedGesture.add(e.getEventTime(), x, y, DisplayUtil.getDisplayRotation());
+    }
 
-        Clicker(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            RootExecutor.exec("input tap " + x + " " + y);
-            return null;
-        }
+    public void onLongPressUp(MotionEvent e) {
+        gestureInjector.longTap(new GesturePoint(x, y, DisplayUtil.getDisplayRotation()));
     }
 }

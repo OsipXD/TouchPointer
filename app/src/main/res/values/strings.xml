@@ -1,5 +1,24 @@
 <resources>
     <string name="app_name">Touch Pointer</string>
-    <string name="start_stop_service">Start/Stop Service</string>
-    <string name="pointer_speed">Pointer speed:</string>
+    <string name="pointer_speed">Чувствительность</string>
+    <string name="enable_tp">Включить Touch Pointer</string>
+    <string name="gesture_speed">Скорость жестов</string>
+    <string name="cursor_settings">Настройка курсора</string>
+    <string name="view_settings">Настройки отображения</string>
+    <string name="calibrate">Калибровка</string>
+    <string name="show_dead_zones">Отображать мёртвые зоны</string>
+    <string name="calibrate_btn">Калибровка</string>
+    <string name="percent_value">x%.1f</string>
+
+    <string name="preference_file">config</string>
+    <string name="speed_multiplier">speed_multiplier</string>
+    <string name="gesture_multiplier">gesture_multiplier</string>
+
+    <string name="title_activity_calibrate">CalibrateActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="button_calibration_title">Коснитесь рабочей области экрана\nВ это место будет помещена кнопка для включения и отключения Touch Pointer</string>
+    <string name="button_calibrate_title">Коснитесь рабочей области экрана</string>
+    <string name="button_calibrate_caption">В это место будет помещена кнопка для включения и отключения TouchPointer\'а</string>
+    <string name="button_pos_y">button_pos_y</string>
+    <string name="button_pos_x">button_pos_x</string>
 </resources>

@@ -7,11 +7,11 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
+import android.util.DisplayMetrics;
 import android.view.View;
-import android.widget.RelativeLayout;
 import ru.endlesscode.touchpointer.R;
-import ru.endlesscode.touchpointer.Utils;
+import ru.endlesscode.touchpointer.util.ColorUtil;
+import ru.endlesscode.touchpointer.util.DisplayUtil;
 
 /**
  * Created by OsipXD on 17.11.2016
@@ -19,12 +19,12 @@ import ru.endlesscode.touchpointer.Utils;
  * All rights reserved 2014 - 2016 © «EndlessCode Group»
  */
 public class Pointer extends View {
+    private final Paint cursor = new Paint();
+    private final Paint cursorBorder = new Paint();
+    private final Paint border = new Paint();
+
     private int size;
     private int borderSize;
-    private int color;
-
-    private final Paint cursor = new Paint();
-    private final Paint border = new Paint();
     private int pointerX;
     private int pointerY;
 
@@ -37,15 +37,32 @@ public class Pointer extends View {
                 0, 0
         );
 
-        int color = a.getColor(R.styleable.Pointer_pointerColor, Color.DKGRAY);
-        int size = a.getDimensionPixelSize(R.styleable.Pointer_pointerSize, 30);
-        int borderSize = a.getDimensionPixelSize(R.styleable.Pointer_borderSize, 3);
+        int color;
+        int borderColor;
+        int size;
+        int borderSize;
+        try {
+            color = a.getColor(R.styleable.Pointer_pointerColor, Color.DKGRAY);
+            borderColor = a.getColor(R.styleable.Pointer_borderColor, 0xFF388E3C);
+            size = a.getDimensionPixelSize(R.styleable.Pointer_pointerSize, DisplayUtil.dpToPx(10));
+            borderSize = a.getDimensionPixelSize(R.styleable.Pointer_borderSize, DisplayUtil.dpToPx(1));
+        } finally {
+            a.recycle();
+        }
 
         this.setColor(color);
         this.setSize(size, borderSize);
 
         this.cursor.setStrokeCap(Paint.Cap.ROUND);
-        this.border.setStrokeCap(Paint.Cap.ROUND);
+        this.cursorBorder.setStrokeCap(Paint.Cap.ROUND);
+
+        this.border.setColor(borderColor);
+        this.border.setStrokeWidth(borderSize * 2);
+        this.border.setStyle(Paint.Style.STROKE);
+
+        DisplayMetrics metrics = DisplayUtil.getMetrics();
+        this.pointerX = metrics.widthPixels / 2;
+        this.pointerY = metrics.heightPixels / 2;
     }
 
     @Override
@@ -56,23 +73,21 @@ public class Pointer extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        int x = this.getWidth() / 2;
-        int y = this.getHeight() / 2;
+        DisplayMetrics metrics = DisplayUtil.getMetrics();
+        canvas.drawPoint(pointerX, pointerY, cursorBorder);
+        canvas.drawPoint(pointerX, pointerY, cursor);
+        canvas.drawRect(0, 0, metrics.widthPixels, metrics.heightPixels, border);
+    }
 
-        canvas.drawPoint(x, y, border);
-        canvas.drawPoint(x, y, cursor);
+    public void setVisible(boolean visible) {
+        this.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
     }
 
     public void setPointerPosition(int pointerX, int pointerY) {
         this.pointerX = pointerX;
         this.pointerY = pointerY;
 
-        int marginLeft = pointerX - this.getWidth() / 2;
-        int marginTop = pointerY - this.getHeight() / 2;
-
-        Log.d("TapTap", "Position: (" + marginLeft + ", " + marginTop + ")");
-        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) this.getLayoutParams();
-        params.setMargins(marginLeft, marginTop, 0, 0);
+        invalidate();
     }
 
     public int getPointerX() {
@@ -83,24 +98,20 @@ public class Pointer extends View {
         return pointerY;
     }
 
-    public void setColor(int color) {
-        this.color = color;
-
-        this.cursor.setColor(this.color);
-        this.border.setColor(Utils.isColorDark(this.color) ? Color.LTGRAY : Color.DKGRAY);
+    private void setColor(int color) {
+        this.cursor.setColor(color);
+        this.cursorBorder.setColor(ColorUtil.isColorDark(color) ? Color.LTGRAY : Color.DKGRAY);
 
         invalidate();
-        requestLayout();
     }
 
-    public void setSize(int size, int borderSize) {
+    private void setSize(int size, int borderSize) {
         this.size = size;
         this.borderSize = borderSize;
 
         this.cursor.setStrokeWidth(this.size);
-        this.border.setStrokeWidth(this.size + this.borderSize);
+        this.cursorBorder.setStrokeWidth(this.size + this.borderSize);
 
-        invalidate();
         requestLayout();
     }
 }
